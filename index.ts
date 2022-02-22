@@ -149,7 +149,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
       body: {
         storage: {
           value: page.content,
-          representation: "storage",
+          representation: "wiki",
         },
       },
     };
@@ -202,7 +202,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
       body: {
         storage: {
           value: page?.content,
-          representation: "storage",
+          representation: "wiki",
         },
       },
     };
