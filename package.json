@@ -1,0 +1,25 @@
+{
+  "name": "confluence-pod",
+  "version": "1.0.0",
+  "description": "A Dendron pod to publish notes to your personal Confluence space",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tduffield/confluence-pod.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tduffield/confluence-pod/issues"
+  },
+  "homepage": "https://github.com/tduffield/confluence-pod#readme",
+  "dependencies": {
+    "@dendronhq/pods-core": "^0.82.0",
+    "@shogobg/markdown2confluence": "^0.1.7",
+    "confluence-api": "^1.4.0"
+  }
+}
