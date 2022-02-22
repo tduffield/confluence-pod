@@ -69,19 +69,19 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
     const { engine, note } = opts;
     var result: any;
 
-    // convert to atlassian format
-    const confluenceBody = markdown2confluence(note.body);
+    const content = markdown2confluence(note.body);
 
     try {
-      if (note.custom?.documentId) {
+      if (note.custom?.pageId) {
         const pageContent = await this.getConfluencePage(opts);
+        const newPageVersion = pageContent.version.number + 1;
 
         const page = {
           pageId: pageContent.id,
-          pageVersion: pageContent.version.number,
+          pageVersion: newPageVersion,
           dendronId: note.id,
           title: note.title,
-          content: confluenceBody
+          content: content
         }
 
         result = await this.updateConfluencePage(opts, page);
@@ -89,7 +89,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
         const page = {
           dendronId: note.id,
           title: note.title,
-          content: confluenceBody
+          content: content
         }
 
         result = await this.createConfluencePage(opts, page);
@@ -107,7 +107,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
 
   /**
    * Get the specified Confluence page
-   * @params documentId
+   * @params opts
    * @returns confluence page object
    */
   // Get the latest version.number for the given document
@@ -118,7 +118,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
       const content = await axios({
         method: "GET",
         baseURL: config.baseUrl,
-        url: `/wiki/rest/api/content/${note.custom?.documentId}`,
+        url: `/wiki/rest/api/content/${note.custom?.pageId}`,
         auth: {
           username: config.username,
           password: config.password,
@@ -182,7 +182,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
   }
 
   /**
-   * Update an existing documentId
+   * Update an existing pageId
    *
    * @returns confluence page object
    */
@@ -190,18 +190,19 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
     const { config } = opts;
 
     var formData: any = {
+      id: page.pageId,
       type: "page",
       title: page?.title,
       space: {
         key: config.space,
       },
       version: {
-        number: page.pageVersion++,
+        number: page.pageVersion,
         minorEdit: false,
       },
       body: {
         storage: {
-          value: page?.content,
+          value: page.content,
           representation: "wiki",
         },
       },

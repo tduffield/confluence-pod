@@ -46,17 +46,17 @@ class ConfluencePod extends pods_core_1.PublishPod {
         return __awaiter(this, void 0, void 0, function* () {
             const { engine, note } = opts;
             var result;
-            // convert to atlassian format
-            const confluenceBody = markdown2confluence(note.body);
+            const content = markdown2confluence(note.body);
             try {
-                if ((_a = note.custom) === null || _a === void 0 ? void 0 : _a.documentId) {
+                if ((_a = note.custom) === null || _a === void 0 ? void 0 : _a.pageId) {
                     const pageContent = yield this.getConfluencePage(opts);
+                    const newPageVersion = pageContent.version.number + 1;
                     const page = {
                         pageId: pageContent.id,
-                        pageVersion: pageContent.version.number,
+                        pageVersion: newPageVersion,
                         dendronId: note.id,
                         title: note.title,
-                        content: confluenceBody
+                        content: content
                     };
                     result = yield this.updateConfluencePage(opts, page);
                 }
@@ -64,7 +64,7 @@ class ConfluencePod extends pods_core_1.PublishPod {
                     const page = {
                         dendronId: note.id,
                         title: note.title,
-                        content: confluenceBody
+                        content: content
                     };
                     result = yield this.createConfluencePage(opts, page);
                 }
@@ -80,7 +80,7 @@ class ConfluencePod extends pods_core_1.PublishPod {
     }
     /**
      * Get the specified Confluence page
-     * @params documentId
+     * @params opts
      * @returns confluence page object
      */
     // Get the latest version.number for the given document
@@ -92,7 +92,7 @@ class ConfluencePod extends pods_core_1.PublishPod {
                 const content = yield (0, common_all_1.axios)({
                     method: "GET",
                     baseURL: config.baseUrl,
-                    url: `/wiki/rest/api/content/${(_a = note.custom) === null || _a === void 0 ? void 0 : _a.documentId}`,
+                    url: `/wiki/rest/api/content/${(_a = note.custom) === null || _a === void 0 ? void 0 : _a.pageId}`,
                     auth: {
                         username: config.username,
                         password: config.password,
@@ -153,7 +153,7 @@ class ConfluencePod extends pods_core_1.PublishPod {
         });
     }
     /**
-     * Update an existing documentId
+     * Update an existing pageId
      *
      * @returns confluence page object
      */
@@ -161,18 +161,19 @@ class ConfluencePod extends pods_core_1.PublishPod {
         return __awaiter(this, void 0, void 0, function* () {
             const { config } = opts;
             var formData = {
+                id: page.pageId,
                 type: "page",
                 title: page === null || page === void 0 ? void 0 : page.title,
                 space: {
                     key: config.space,
                 },
                 version: {
-                    number: page.pageVersion++,
+                    number: page.pageVersion,
                     minorEdit: false,
                 },
                 body: {
                     storage: {
-                        value: page === null || page === void 0 ? void 0 : page.content,
+                        value: page.content,
                         representation: "wiki",
                     },
                 },
