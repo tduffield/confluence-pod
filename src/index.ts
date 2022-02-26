@@ -127,6 +127,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
 
       return content.data
     } catch (err: any) {
+      console.log(err);
       throw new DendronError({ message: stringifyError(err) });
     }
 
