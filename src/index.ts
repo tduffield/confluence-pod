@@ -1,10 +1,4 @@
 import {
-  axios,
-  DendronError,
-  stringifyError
-} from "@dendronhq/common-all";
-
-import {
   PublishPodConfig,
   PublishPodPlantOpts,
   PublishPod,
@@ -12,15 +6,30 @@ import {
   PodUtils,
 } from "@dendronhq/pods-core";
 
+import * as path from "path";
+
+import {
+  ConfluenceAPI,
+} from "./confluenceApi";
+
 var markdown2confluence = require("@shogobg/markdown2confluence");
 
+export type ConfluenceAttachment = {
+  title: string,
+  fsPath: string,
+  comment?: string,
+}
+
 export type ConfluencePayload = {
+  pageId?: string;
+  pageVersion?: number;
   dendronId: string;
   title: string;
   content: string;
+  attachments?: ConfluenceAttachment[];
 };
 
-type ConfluenceConfig = PublishPodConfig & {
+export type ConfluenceConfig = PublishPodConfig & {
   username: string;
   password: string;
   baseUrl: string;
@@ -28,10 +37,7 @@ type ConfluenceConfig = PublishPodConfig & {
   parentPageId: string;
 };
 
-export type ExistingConfluencePayload = ConfluencePayload & {
-  pageId: string;
-  pageVersion: number;
-};
+const CONFLUNCE_IMG_REGEX = /\!(.+?)\!/g
 
 class ConfluencePod extends PublishPod<ConfluenceConfig> {
   static id: string = "dendron.confluence";
@@ -66,174 +72,45 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
   }
 
   async plant(opts: PublishPodPlantOpts) {
-    const { engine, note } = opts;
-    var result: any;
+    const { config, engine, note } = opts;
 
-    const content = markdown2confluence(note.body);
+    const confluenceApi: ConfluenceAPI = new ConfluenceAPI({ podConfig: config });
+    const content: string = markdown2confluence(note.body);
 
-    try {
-      if (note.custom?.pageId) {
-        const pageContent = await this.getConfluencePage(opts);
-        const newPageVersion = pageContent.version.number + 1;
+    if (!note.custom?.pageId) {
+      const newPage = await confluenceApi.createPage();
 
-        const page = {
-          pageId: pageContent.id,
-          pageVersion: newPageVersion,
-          dendronId: note.id,
-          title: note.title,
-          content: content
-        }
-
-        result = await this.updateConfluencePage(opts, page);
-      } else {
-        const page = {
-          dendronId: note.id,
-          title: note.title,
-          content: content
-        }
-
-        result = await this.createConfluencePage(opts, page);
-      }
-    } catch (err: any) {
-      throw new DendronError({ message: stringifyError(err) });
+      note.custom.pageId = newPage.id;
+      await engine.writeNote(note, { updateExisting: true });
     }
 
-    // save updated note frontmatter (e.g., pageId)
-    note.custom.pageId = result.id;
-    await engine.writeNote(note, { updateExisting: true });
+    const page = await confluenceApi.getPage({ pageId: note.custom?.pageId });
 
-    return result.data;
+    this.extractAttachments(content).forEach(async(attachment) => {
+      await confluenceApi.uploadAttachment({
+        pageId: page.id,
+        title: attachment,
+        fsPath: path.join(engine.wsRoot, note.vault.fsPath, attachment),
+      });
+    });
+
+    const updatedPage: any = await confluenceApi.updatePage({
+      pageId: page.id,
+      version: (page.version.number + 1),
+      title: note.title,
+      content: content,
+    })
+
+    return updatedPage;
   }
 
   /**
-   * Get the specified Confluence page
-   * @params opts
-   * @returns confluence page object
+   * Pull out references to all the assets that need to be uploaded as attachments
    */
-  // Get the latest version.number for the given document
-   async getConfluencePage(opts: PublishPodPlantOpts) {
-    const { note, config } = opts;
-
-    try {
-      const content = await axios({
-        method: "GET",
-        baseURL: config.baseUrl,
-        url: `/wiki/rest/api/content/${note.custom?.pageId}`,
-        auth: {
-          username: config.username,
-          password: config.password,
-        },
-      });
-
-      return content.data
-    } catch (err: any) {
-      console.log(err);
-      throw new DendronError({ message: stringifyError(err) });
-    }
-
-  }
-
-  /**
-   * Create a brand new Confluence document
-   * @params
-   * @returns confluence page object
-   */
-  async createConfluencePage(opts: PublishPodPlantOpts, page: ConfluencePayload) {
-    const {config } = opts;
-
-    var formData: any = {
-      type: "page",
-      title: page.title,
-      space: {
-        key: config.space,
-      },
-      body: {
-        storage: {
-          value: page.content,
-          representation: "wiki",
-        },
-      },
-    };
-
-    if (config.parentPageId) {
-      formData.ancestors = [
-        {
-          id: config.parentPageId,
-          type: "page",
-        },
-      ];
-    }
-
-    try {
-      const resp = await axios({
-        method: "POST",
-        baseURL: config.baseUrl,
-        url: "/wiki/rest/api/content",
-        auth: {
-          username: config.username,
-          password: config.password,
-        },
-        data: formData,
-      });
-
-      return resp.data;
-    } catch (err: any) {
-      throw new DendronError({ message: stringifyError(err) });
-    }
-  }
-
-  /**
-   * Update an existing pageId
-   *
-   * @returns confluence page object
-   */
-   async updateConfluencePage(opts: PublishPodPlantOpts, page: ExistingConfluencePayload) {
-    const { config } = opts;
-
-    var formData: any = {
-      id: page.pageId,
-      type: "page",
-      title: page?.title,
-      space: {
-        key: config.space,
-      },
-      version: {
-        number: page.pageVersion,
-        minorEdit: false,
-      },
-      body: {
-        storage: {
-          value: page.content,
-          representation: "wiki",
-        },
-      },
-    };
-
-    if (config.parentPageId) {
-      formData.ancestors = [
-        {
-          id: config.parentPageId,
-          type: "page",
-        },
-      ];
-    }
-
-    try {
-      const resp = await axios({
-        method: "PUT",
-        baseURL: config.baseUrl,
-        url: `/wiki/rest/api/content/${page.pageId}`,
-        auth: {
-          username: config.username,
-          password: config.password,
-        },
-        data: formData,
-      });
-
-      return resp.data;
-    } catch (err: any) {
-      throw new DendronError({ message: stringifyError(err) });
-    }
+  extractAttachments(content: string): string[] {
+    return (content.match(CONFLUNCE_IMG_REGEX) || [])
+      .map((image: string) => image.replace(CONFLUNCE_IMG_REGEX, "$1"))
+      .filter((image: string) => !image.startsWith("http"))
   }
 }
 
