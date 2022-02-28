@@ -2,7 +2,7 @@
   "name": "confluence-pod",
   "version": "1.0.0",
   "description": "A Dendron pod to publish notes to your personal Confluence space",
-  "main": "./dist/index.js",
+  "main": "./lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
