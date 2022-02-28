@@ -111,7 +111,7 @@ export class ConfluenceAPI {
   }
 
   async uploadAttachment(opts: UploadAttachmentOpts) {
-    const { pageId, fsPath } = opts;
+    const { pageId, fsPath, title } = opts;
     const uploadFormData = new FormData();
     uploadFormData.append("file", fs.createReadStream(fsPath));
 
@@ -131,6 +131,7 @@ export class ConfluenceAPI {
 
     const modifyFormData = {
       id: confluenceAttachment.id,
+      title: title,
       type: "attachment",
       status: "current",
       version: {
