@@ -79,7 +79,7 @@ export class ConfluenceAPI {
       title: opts?.title,
       body: {
         storage: {
-          content: "Upload in progress",
+          value: "Upload in progress",
           representation: "storage",
         },
       },
