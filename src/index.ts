@@ -68,16 +68,16 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
   async plant(opts: PublishPodPlantOpts) {
     const { config, engine, note } = opts;
 
-    // We need to force some config in order for things to look good in confluence
-    var iConfig = engine.config
-    iConfig.hierarchyDisplay = false        // we're only publishing a single page
-    iConfig.preview!.enableFMTitle = false  // don't duplicate the page title
-
     const proc = MDUtilsV5.procRehypeFull(
       {
         engine,
         fname: note.fname,
         vault: note.vault,
+        // force "single note" behavior
+        insideNoteRef: true,
+        publishOpts: {
+          insertTitle: false
+        }
       },
       { flavor: ProcFlavor.REGULAR }
     );
