@@ -19,8 +19,6 @@
   "homepage": "https://github.com/tduffield/confluence-pod#readme",
   "dependencies": {
     "@dendronhq/pods-core": "^0.83.0",
-    "@shogobg/markdown2confluence": "^0.1.7",
-    "axios-file": "^1.0.17",
     "form-data": "^4.0.0"
   }
 }

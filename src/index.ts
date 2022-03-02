@@ -1,4 +1,8 @@
 import {
+  NoteUtils,
+} from "@dendronhq/common-all";
+
+import {
   PublishPodConfig,
   PublishPodPlantOpts,
   PublishPod,
@@ -12,22 +16,12 @@ import {
   ConfluenceAPI,
 } from "./confluenceApi";
 
-var markdown2confluence = require("@shogobg/markdown2confluence");
+import {
+  MDUtilsV5,
+  ProcFlavor,
+} from "@dendronhq/engine-server";
 
-export type ConfluenceAttachment = {
-  title: string,
-  fsPath: string,
-  comment?: string,
-}
-
-export type ConfluencePayload = {
-  pageId?: string;
-  pageVersion?: number;
-  dendronId: string;
-  title: string;
-  content: string;
-  attachments?: ConfluenceAttachment[];
-};
+import { confluence } from './remark/confluence';
 
 export type ConfluenceConfig = PublishPodConfig & {
   username: string;
@@ -74,8 +68,24 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
   async plant(opts: PublishPodPlantOpts) {
     const { config, engine, note } = opts;
 
+    // We need to force some config in order for things to look good in confluence
+    var iConfig = engine.config
+    iConfig.hierarchyDisplay = false        // we're only publishing a single page
+    iConfig.preview!.enableFMTitle = false  // don't duplicate the page title
+
+    const proc = MDUtilsV5.procRehypeFull(
+      {
+        engine,
+        fname: note.fname,
+        vault: note.vault,
+      },
+      { flavor: ProcFlavor.REGULAR }
+    );
+    proc.use(confluence);
+    const content = await proc.process(NoteUtils.serialize(note));
+    const contentString = content.toString();
+
     const confluenceApi: ConfluenceAPI = new ConfluenceAPI({ podConfig: config });
-    const content: string = markdown2confluence(note.body);
 
     if (!note.custom?.pageId) {
       const newPage = await confluenceApi.createPage();
@@ -86,7 +96,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
 
     const page = await confluenceApi.getPage({ pageId: note.custom?.pageId });
 
-    this.extractAttachments(content).forEach(async(attachment) => {
+    this.extractAttachments(contentString).forEach(async(attachment) => {
       await confluenceApi.uploadAttachment({
         pageId: page.id,
         title: attachment,
@@ -98,7 +108,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
       pageId: page.id,
       version: (page.version.number + 1),
       title: note.title,
-      content: content,
+      content: contentString,
     })
 
     return updatedPage;
