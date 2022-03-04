@@ -27,7 +27,7 @@ dendron publishPod \
   --wsRoot . \
   --vault vault \
   --podId dendron.confluence \
-  --podPkg confluence-pod \
+  --podPkg @tomduffield/confluence-pod \
   --podSource custom \
   --configPath './pods/dendron.confluence/config.yml' \
   --query '<YOUR_NOTE>'
@@ -42,7 +42,7 @@ function publish-note-to-confluence() {
   vault="${2:-vault}"
   workspace="{workspace}"
   dendron-cli publishPod --wsRoot "$workspace" --vault "$vault" \
-    --podId dendron.confluence --podPkg confluence-pod --podSource custom \
+    --podId dendron.confluence --podPkg @tomduffield/confluence-pod --podSource custom \
     --configPath "${workspace}/pods/dendron.confluence/config.yml" \
     --query "$query"
 }
