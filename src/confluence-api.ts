@@ -1,14 +1,11 @@
 import {
-  ConfluenceConfig
-} from ".";
-
-import {
   axios,
   DendronError,
 } from "@dendronhq/common-all";
 
 import FormData from "form-data";
 import * as fs from "fs";
+import { ConfluenceConfig } from ".";
 
 export type GetPageOpts = {
   pageId: string,
@@ -32,43 +29,42 @@ export type UploadAttachmentOpts = GetPageOpts & {
 export type DeleteAttachmentOpts = GetPageOpts;
 
 export class ConfluenceAPI {
-  private _baseUrl: string;
-  private _authHeaders: any;
-  private _defaultPageData: any;
+  private baseUrl: string;
+  private authHeaders: any;
+  private defaultPageData: any;
 
   constructor({
-    podConfig
+    podConfig,
   }: {
     podConfig: ConfluenceConfig,
   }) {
-    this._baseUrl = podConfig.baseUrl;
-    this._authHeaders = {
+    this.baseUrl = podConfig.baseUrl;
+    this.authHeaders = {
       auth: {
         username: podConfig.username,
         password: podConfig.password,
       },
-    }
+    };
 
-    this._defaultPageData = {
+    this.defaultPageData = {
       type: "page",
       space: {
         key: podConfig.space,
-      }
-    }
-
+      },
+    };
 
     if (podConfig.parentPageId) {
-      this._defaultPageData.ancestors = [
+      this.defaultPageData.ancestors = [
         {
           id: podConfig.parentPageId,
           type: "page",
-        }
-      ]
+        },
+      ];
     }
   }
 
   async getPage(opts: GetPageOpts): Promise<any> {
-    return await this._apiRequest("get", `/wiki/rest/api/content/${opts.pageId}`);
+    return this.apiRequest("get", `/wiki/rest/api/content/${opts.pageId}`);
   }
 
   async createPage(opts?: CreatePageOpts): Promise<any> {
@@ -76,21 +72,21 @@ export class ConfluenceAPI {
       title: opts?.title,
       body: {
         storage: {
-          value: "Upload in progress",
+          value: opts?.content,
           representation: "storage",
         },
       },
-      ...this._defaultPageData
-    }
+      ...this.defaultPageData,
+    };
 
-    return await this._apiRequest("post", "/wiki/rest/api/content", formData);
+    return this.apiRequest("post", "/wiki/rest/api/content", formData);
   }
 
   async updatePage(opts: UpdatePageOpts): Promise<any> {
     const { pageId, title, version, content } = opts;
     const formData = {
       id: pageId,
-      title: title,
+      title,
       version: {
         number: version,
         minorEdit: true,
@@ -98,13 +94,13 @@ export class ConfluenceAPI {
       body: {
         storage: {
           value: content,
-          representation: "wiki"
+          representation: "wiki",
         },
       },
-      ...this._defaultPageData
-    }
+      ...this.defaultPageData,
+    };
 
-    return await this._apiRequest("put", `/wiki/rest/api/content/${pageId}`, formData);
+    return this.apiRequest("put", `/wiki/rest/api/content/${pageId}`, formData);
   }
 
   async uploadAttachment(opts: UploadAttachmentOpts) {
@@ -117,45 +113,45 @@ export class ConfluenceAPI {
       "Content-Type": `multipart/form-data; boundary=${uploadFormData.getBoundary()}`,
     };
 
-    const upload = await this._apiRequest(
+    const upload = await this.apiRequest(
       "put",
       `/wiki/rest/api/content/${pageId}/child/attachment`,
       uploadFormData,
-      headers
+      headers,
     );
 
     const confluenceAttachment = upload.results[0];
 
     const modifyFormData = {
       id: confluenceAttachment.id,
-      title: title,
+      title,
       type: "attachment",
       status: "current",
       version: {
         number: (confluenceAttachment.version.number + 1),
-        minorEdit: true
-      }
-    }
+        minorEdit: true,
+      },
+    };
 
-    return await this._apiRequest(
+    return this.apiRequest(
       "put",
       `/wiki/rest/api/content/${pageId}/child/attachment/${confluenceAttachment.id}`,
-      modifyFormData
+      modifyFormData,
     );
   }
 
-  async _apiRequest(method: string, url: string, formData?: any, headers?: any) {
+  async apiRequest(method: string, url: string, formData?: any, headers?: any) {
     try {
       const response = await axios({
-        method: method,
-        baseURL: this._baseUrl,
-        url: url,
+        method,
+        baseURL: this.baseUrl,
+        url,
         data: formData,
-        headers: headers,
-        ...this._authHeaders,
+        headers,
+        ...this.authHeaders,
       });
 
-      return response.data
+      return response.data;
     } catch (err: any) {
       throw new DendronError({
         code: err.response.data.statusCode,

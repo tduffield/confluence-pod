@@ -8,9 +8,9 @@ import {
 
 import * as path from "path";
 import { NoteUtils } from "@dendronhq/common-all";
-import { ConfluenceAPI } from "./confluence-api";
 import { MDUtilsV5, ProcFlavor } from "@dendronhq/engine-server";
-import { confluence } from './confluence-remark';
+import { ConfluenceAPI } from "./confluence-api";
+import { confluence } from "./confluence-remark";
 
 export type ConfluenceConfig = PublishPodConfig & {
   username: string;
@@ -21,7 +21,7 @@ export type ConfluenceConfig = PublishPodConfig & {
   includeNote: boolean;
 };
 
-const CONFLUNCE_IMG_REGEX = /!(.+?)!/g
+const CONFLUENCE_IMG_REGEX = /!(.+?)!/g;
 
 class ConfluencePod extends PublishPod<ConfluenceConfig> {
   static id = "dendron.confluence";
@@ -55,7 +55,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
           type: "boolean",
           description: "whether or not to indicate the note was published from Dendron",
           default: false,
-        }
+        },
       },
     }) as JSONSchemaType<ConfluenceConfig>;
   }
@@ -71,25 +71,23 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
         // force "single note" behavior
         insideNoteRef: true,
         publishOpts: {
-          insertTitle: false
-        }
+          insertTitle: false,
+        },
       },
-      { flavor: ProcFlavor.REGULAR }
+      { flavor: ProcFlavor.REGULAR },
     );
     const settings: any = { include: config.includeNote };
     proc.use(confluence, settings);
     const content = await proc.process(NoteUtils.serialize(note));
     const contentString = content.toString();
 
-    if (process.env.CPOD_DEBUG_CONTENT) {
-      console.log(contentString);
-      return;
-    }
-
     const confluenceApi: ConfluenceAPI = new ConfluenceAPI({ podConfig: config });
 
     if (!note.custom?.pageId) {
-      const newPage = await confluenceApi.createPage();
+      const newPage = await confluenceApi.createPage({
+        title: note.title,
+        content: "Upload in progress",
+      });
 
       note.custom.pageId = newPage.id;
       await engine.writeNote(note, { updateExisting: true });
@@ -97,7 +95,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
 
     const page = await confluenceApi.getPage({ pageId: note.custom?.pageId });
 
-    this.extractAttachments(contentString).forEach(async(attachment) => {
+    ConfluencePod.extractAttachments(contentString).forEach(async (attachment) => {
       await confluenceApi.uploadAttachment({
         pageId: page.id,
         title: attachment,
@@ -110,7 +108,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
       version: (page.version.number + 1),
       title: note.title,
       content: contentString,
-    })
+    });
 
     return updatedPage;
   }
@@ -118,10 +116,10 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
   /**
    * Pull out references to all the assets that need to be uploaded as attachments
    */
-  extractAttachments(content: string): string[] {
-    return (content.match(CONFLUNCE_IMG_REGEX) || [])
-      .map((image: string) => image.replace(CONFLUNCE_IMG_REGEX, "$1"))
-      .filter((image: string) => !image.startsWith("http"))
+  static extractAttachments(content: string): string[] {
+    return (content.match(CONFLUENCE_IMG_REGEX) || [])
+      .map((image: string) => image.replace(CONFLUENCE_IMG_REGEX, "$1"))
+      .filter((image: string) => !image.startsWith("http"));
   }
 }
 
