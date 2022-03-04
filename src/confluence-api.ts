@@ -94,7 +94,7 @@ export class ConfluenceAPI {
       body: {
         storage: {
           value: content,
-          representation: "wiki",
+          representation: "storage",
         },
       },
       ...this.defaultPageData,

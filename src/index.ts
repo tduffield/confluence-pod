@@ -76,7 +76,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
       },
       { flavor: ProcFlavor.REGULAR },
     );
-    const settings: any = { include: config.includeNote };
+    const settings: any = { includeNote: config.includeNote };
     proc.use(confluence, settings);
     const content = await proc.process(NoteUtils.serialize(note));
     const contentString = content.toString();

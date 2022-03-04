@@ -124,7 +124,8 @@ function insertInfoBlock(node: Root) {
   return node;
 }
 
-function plugin(proc: Unified.Processor, opts?: PluginOpts): Transformer {
+function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
+  const proc = this;
   function transformer(tree: Node, _file: VFile) {
     visit(tree, (node) => {
       if (node.type === "element") {
