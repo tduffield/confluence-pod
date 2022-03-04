@@ -11,6 +11,9 @@
     "lint": "eslint --ext .js,.ts",
     "build": "tsc --build"
   },
+  "files": [
+    "lib/*.js"
+  ],
   "keywords": [],
   "author": "Tom Duffield",
   "license": "MIT",
