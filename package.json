@@ -1,6 +1,6 @@
 {
   "name": "@tomduffield/confluence-pod",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A Dendron pod to publish notes to your personal Confluence space",
   "main": "./lib/index.js",
   "publishConfig": {
