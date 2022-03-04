@@ -2,7 +2,6 @@ import { NoteProps } from "@dendronhq/common-all";
 import Unified, { Transformer } from "unified";
 import { Node, Root, Element } from "hast";
 import visit from "unist-util-visit";
-import { VFile } from "vfile";
 import { MDUtilsV4 } from "@dendronhq/engine-server";
 
 type PluginOpts = {
@@ -10,7 +9,7 @@ type PluginOpts = {
 };
 
 function plugin(proc: Unified.Processor, opts?: PluginOpts): Transformer {
-  function transformer(tree: Node, _file: VFile) {
+  function transformer(tree: Node) {
     visit(tree, (node) => {
       if (node.type == "element") {
         const enode = node as Element;
