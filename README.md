@@ -53,6 +53,7 @@ password: <your_api_key>
 baseUrl: https://<your_organization>.atlassian.net
 space: "~012345678" # e.g., "~[0-9]{9}" for your personal space
 parentPageId: "0123456789" # e.g., "[0-9]{10}"
+includeNote: false
 ```
 
 At this point, you should be able to publish a note via the Dendron CLI.
@@ -76,7 +77,7 @@ password | An [API Token](https://id.atlassian.com/manage/api-tokens) you genera
 baseUrl | The domain root for your Confluence installation | required
 space | The reference to the space where you want to upload | required
 parentPageId | The page under which all pages are published | nil
-includeHeader | Whether or not to include an info panel at the top of the page indicating the page is exported from Dendron | false
+includeNote | Whether or not to include an info panel at the top of the page indicating the page is exported from Dendron | false
 
 ## Debugging
 The most likely bug you'll run into once you get things working is `com.atlassian.confluence.api.service.exceptions.BadRequestException: Content body cannot be converted to new editor format`. This means that there's something in the HTML that Confluence doesn't like. This means that there's probably an edge case that I haven't caught (apologies).
