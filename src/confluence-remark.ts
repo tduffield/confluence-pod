@@ -1,4 +1,4 @@
-import { DNoteLoc, NoteProps } from "@dendronhq/common-all";
+import { NoteProps } from "@dendronhq/common-all";
 import Unified, { Transformer } from "unified";
 import { Node, Root, Element } from "hast";
 import visit from "unist-util-visit";
@@ -9,29 +9,27 @@ type PluginOpts = {
   includeNote: boolean;
 };
 
-function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
-  // @ts-ignore
-  const proc = this;
+function plugin(proc: Unified.Processor, opts?: PluginOpts): Transformer {
   function transformer(tree: Node, _file: VFile) {
     visit(tree, (node) => {
       if (node.type == "element") {
-        let enode = node as Element;
+        const enode = node as Element;
         if (enode.tagName === "img") {
           transformImage(enode);
         } else if (enode.tagName === "a" && enode.properties?.href) {
-          let maybeNoteId = enode.properties.href as string;
+          const maybeNoteId = enode.properties.href as string;
           if (maybeNoteId.startsWith("http")) {
             return;
           }
 
           const { engine } = MDUtilsV4.getEngineFromProc(proc);
-          let maybeNote = engine.notes[maybeNoteId];
-          if (maybeNote && maybeNote.custom!.pageId) {
+          const maybeNote = engine.notes[maybeNoteId];
+          if (maybeNote && maybeNote.custom.pageId) {
             transformWikiLink(enode, maybeNote);
           }
         }
       } else if (node.type == "root" && opts?.includeNote) {
-        let rnode = node as Root;
+        const rnode = node as Root;
         insertInfoBlock(rnode);
 
       }
@@ -48,9 +46,9 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
   function transformImage(enode: Element) {
     enode.tagName = "ac:image";
 
-    var riTagName = "ri:attachment";
-    var riPropName = "ri:filename";
-    var riPropValue = enode.properties?.src as string;
+    let riTagName = "ri:attachment";
+    let riPropName = "ri:filename";
+    const riPropValue = enode.properties?.src as string;
 
     if (riPropValue.startsWith("http")) {
       riTagName = "ri:url";

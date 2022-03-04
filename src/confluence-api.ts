@@ -5,12 +5,9 @@ import {
 import {
   axios,
   DendronError,
-  stringifyError
 } from "@dendronhq/common-all";
 
 import FormData from "form-data";
-
-import * as path from "path";
 import * as fs from "fs";
 
 export type GetPageOpts = {
@@ -101,7 +98,7 @@ export class ConfluenceAPI {
       body: {
         storage: {
           value: content,
-          representation: "storage"
+          representation: "wiki"
         },
       },
       ...this._defaultPageData
