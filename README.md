@@ -5,13 +5,28 @@ A Dendron pod to publish notes to your personal Confluence space.
 This is very much a work-in-progress. I have only tested this pod with a very limited subset of my own notes, so there  are a few limitations and probably tons of edge cases that I'm not taking into account. I'm also relatively new to NodeJS development, so this project is probably poorly managed (also there are no tests).
 
 ### Limitations
- * I'm currently using the "native" HTML processor (with a few tweaks). However, Confluence can be picky about what you give it. As such, there are a few limitations on how this pod can be used at the moment.
+* I'm currently using the "native" HTML processor (with a few tweaks). However, Confluence can be picky about what you give it. As such, there are a few limitations on how this pod can be used at the moment.
   * Published page will not include the Children or Backlink sections (I strip them out)
 * Right now I've only tested publishling a single note via the CLI. I don't currently respect any heirarchy, so all notes are published as children of your `parentPageId`.
 * I've only tested on the Confluence Cloud. I have no idea if this will work on an onprem installation.
 
+### Confluence Storage Format Support
+I'm doing my best to add support for Atlassian's [Storage Format](https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html). Since it's largely based on HTML, the native Remark HTML parser that comes with Dendron should get us 95% of the way there. Over time I'll try and expand my custom processor to leverage the storage format where possible.
+
+Format Type | Status
+--- | ---
+Task Lists | To Do
+Link to Another Confluence Page | Complete (see Cross-note Links)
+Attached Image | Complete
+External Image | Complete
+Image Attributes | To Do
+
 ### Behavior
-* You can include links to other notes. If that note is also published (e.g., the node frontmatter has a pageIde), this pod _should_ properly create the `<ac:link>`. Otherwise, we leave the default `<a>` link which gets stripped out by Confluence, leaving just the text.
+#### Cross-note Links
+You can include links to other notes. If that note is also published (e.g., the node frontmatter has a pageId), this pod _should_ properly create the `<ac:link>`. Otherwise, we leave the default `<a>` link which gets stripped out by Confluence, leaving just the text.
+
+#### Image Attachments
+I will upload any referenced images from `./assets` as attachments and convert the `<img>` element to `<ac:image>`.
 
 ## Installation
 
