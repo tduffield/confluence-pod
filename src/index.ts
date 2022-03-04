@@ -1,8 +1,4 @@
 import {
-  NoteUtils,
-} from "@dendronhq/common-all";
-
-import {
   PublishPodConfig,
   PublishPodPlantOpts,
   PublishPod,
@@ -11,17 +7,10 @@ import {
 } from "@dendronhq/pods-core";
 
 import * as path from "path";
-
-import {
-  ConfluenceAPI,
-} from "./confluenceApi";
-
-import {
-  MDUtilsV5,
-  ProcFlavor,
-} from "@dendronhq/engine-server";
-
-import { confluence } from './remark/confluence';
+import { NoteUtils } from "@dendronhq/common-all";
+import { ConfluenceAPI } from "./confluence-api";
+import { MDUtilsV5, ProcFlavor } from "@dendronhq/engine-server";
+import { confluence } from './confluence-remark';
 
 export type ConfluenceConfig = PublishPodConfig & {
   username: string;
@@ -32,11 +21,11 @@ export type ConfluenceConfig = PublishPodConfig & {
   includeNote: boolean;
 };
 
-const CONFLUNCE_IMG_REGEX = /\!(.+?)\!/g
+const CONFLUNCE_IMG_REGEX = /!(.+?)!/g
 
 class ConfluencePod extends PublishPod<ConfluenceConfig> {
-  static id: string = "dendron.confluence";
-  static description: string = "publish note(s) to Atlassian Confluence";
+  static id = "dendron.confluence";
+  static description = "publish note(s) to Atlassian Confluence";
 
   get config() :JSONSchemaType<ConfluenceConfig> {
     return PodUtils.createPublishConfig({
@@ -87,7 +76,8 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
       },
       { flavor: ProcFlavor.REGULAR }
     );
-    proc.use(confluence, { includeNote: config.includeNote });
+    const settings: any = { include: config.includeNote };
+    proc.use(confluence, settings);
     const content = await proc.process(NoteUtils.serialize(note));
     const contentString = content.toString();
 
@@ -115,7 +105,7 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
       });
     });
 
-    const updatedPage: any = await confluenceApi.updatePage({
+    const updatedPage = await confluenceApi.updatePage({
       pageId: page.id,
       version: (page.version.number + 1),
       title: note.title,
