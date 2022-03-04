@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "A Dendron pod to publish notes to your personal Confluence space",
   "main": "./lib/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tduffield/confluence-pod.git"
