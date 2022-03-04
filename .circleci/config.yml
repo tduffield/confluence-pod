@@ -5,43 +5,22 @@ version: 2.1
 orbs:
   node: circleci/node@5.0.0
 
-defaults: &defaults
-  working_directory: ~/repo
-  docker:
-    - image: cimg/node:17.5.0
-
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  test:
-    <<: *defaults
+  test-and-build:
+    docker:
+    - image: cimg/node:17.5.0
     steps:
       - checkout
       - node/install-packages:
           pkg-manager: yarn
       - run: yarn run lint
-      - persist_to_workspace:
-          root: ~/repo
-          paths:
-            - .
-  build:
-    <<: *defaults
-    steps:
-      - attach_workspace:
-          at: ~/repo
       - run: yarn run build
-      - persist_to_workspace:
-          root: ~/repo
-          paths:
-            - .
-
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
   main:
     jobs:
-      - test
-      - build:
-          requires:
-            - test
+      - test-and-build
