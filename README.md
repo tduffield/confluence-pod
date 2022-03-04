@@ -16,7 +16,7 @@ This is very much a work-in-progress. I have only tested this pod with a very li
 I'm not publishing to NPM yet, so you'll need to check out this repository locally.
 
 ```bash
-~/code/confluence-pod $ git clone https://github.com/tduffield/confluence-pod.git
+~/code $ git clone https://github.com/tduffield/confluence-pod.git
 ```
 
 Next, you'll need to follow the symlink instructions to symlink the pod into your workspace.
