@@ -6,7 +6,7 @@ This is very much a work-in-progress. I have only tested this pod with a very li
 
 ### Limitations
 * I'm currently using the "native" HTML processor (with a few tweaks). However, Confluence will not let you include links to non-existent pages.  As such, there are a few limitations on how this pod can be used at the moment.
-  * Notes cannot contain references to other notes (Confluence will throw a 400 saying it can't parse the body).
+  * Notes cannot contain references to other notes. I currently do not support re-mapping the href links to make ti work properly.
   * Published page will not include the Children or Backlink sections (I strip them out)
 * Right now I've only tested publishling a single note via the CLI. I don't currently respect any heirarchy, so all notes are published as children of your `parentPageId`.
 * I've only tested on the Confluence Cloud. I have no idea if this will work on an onprem installation.
