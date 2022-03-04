@@ -5,11 +5,13 @@ A Dendron pod to publish notes to your personal Confluence space.
 This is very much a work-in-progress. I have only tested this pod with a very limited subset of my own notes, so there  are a few limitations and probably tons of edge cases that I'm not taking into account. I'm also relatively new to NodeJS development, so this project is probably poorly managed (also there are no tests).
 
 ### Limitations
-* I'm currently using the "native" HTML processor (with a few tweaks). However, Confluence will not let you include links to non-existent pages.  As such, there are a few limitations on how this pod can be used at the moment.
-  * Notes cannot contain references to other notes. I currently do not support re-mapping the href links to make ti work properly.
+ * I'm currently using the "native" HTML processor (with a few tweaks). However, Confluence can be picky about what you give it. As such, there are a few limitations on how this pod can be used at the moment.
   * Published page will not include the Children or Backlink sections (I strip them out)
 * Right now I've only tested publishling a single note via the CLI. I don't currently respect any heirarchy, so all notes are published as children of your `parentPageId`.
 * I've only tested on the Confluence Cloud. I have no idea if this will work on an onprem installation.
+
+### Behavior
+* You can include links to other notes. If that note is also published (e.g., the node frontmatter has a pageIde), this pod _should_ properly create the `<ac:link>`. Otherwise, we leave the default `<a>` link which gets stripped out by Confluence, leaving just the text.
 
 ## Installation
 
