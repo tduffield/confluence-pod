@@ -1,34 +1,79 @@
 import { DNoteLoc, NoteProps } from "@dendronhq/common-all";
 import Unified, { Transformer } from "unified";
-import { Node, Element } from "hast";
+import { Node, Root, Element } from "hast";
 import visit from "unist-util-visit";
 import { VFile } from "vfile";
 import { MDUtilsV4 } from "@dendronhq/engine-server";
 
 type PluginOpts = {
-  from: DNoteLoc;
-  to: DNoteLoc;
+  includeNote: boolean;
 };
 
 function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
   // @ts-ignore
   const proc = this;
   function transformer(tree: Node, _file: VFile) {
-    visit(tree, 'element', (node) => {
-      let enode = node as Element;
-      if (enode.tagName === "img") {
-        transformImage(enode);
-      } else if (enode.tagName === "a" && enode.properties?.href) {
-        let maybeNoteId = enode.properties.href as string;
-        if (maybeNoteId.startsWith("http")) {
-          return;
-        }
+    visit(tree, (node) => {
+      if (node.type == "element") {
+        let enode = node as Element;
+        if (enode.tagName === "img") {
+          transformImage(enode);
+        } else if (enode.tagName === "a" && enode.properties?.href) {
+          let maybeNoteId = enode.properties.href as string;
+          if (maybeNoteId.startsWith("http")) {
+            return;
+          }
 
-        const { engine } = MDUtilsV4.getEngineFromProc(proc);
-        let maybeNote = engine.notes[maybeNoteId];
-        if (maybeNote && maybeNote.custom!.pageId) {
-          transformWikiLink(enode, maybeNote);
+          const { engine } = MDUtilsV4.getEngineFromProc(proc);
+          let maybeNote = engine.notes[maybeNoteId];
+          if (maybeNote && maybeNote.custom!.pageId) {
+            transformWikiLink(enode, maybeNote);
+          }
         }
+      } else if (node.type == "root" && opts?.includeNote) {
+        let rnode = node as Root;
+        rnode.children.unshift({
+          type: "element",
+          tagName: "ac:structured-macro",
+          properties: {
+            "ac:name": "info",
+          },
+          children: [
+            {
+              type: "element",
+              tagName: "ac:rich-text-body",
+              children: [
+                {
+                  type: "element",
+                  tagName: "p",
+                  children: [
+                    {
+                      type: "text",
+                      value: "This note was exported from ",
+                    },
+                    {
+                      type: "element",
+                      tagName: "a",
+                      properties: {
+                        href: "https://www.dendron.so",
+                      },
+                      children: [
+                        {
+                          type: "text",
+                          value: "Dendron",
+                        },
+                      ],
+                    },
+                    {
+                      type: "text",
+                      value: ". Any changes made to this page may be overwritten.",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        })
       }
       // We _could_ try and undo remark's parsing of the fenced code block, but it looks "fine"
     });

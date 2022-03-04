@@ -24,9 +24,11 @@ Image Attributes | To Do
 ### Behavior
 #### Cross-note Links
 You can include links to other notes. If that note is also published (e.g., the node frontmatter has a pageId), this pod _should_ properly create the `<ac:link>`. Otherwise, we leave the default `<a>` link which gets stripped out by Confluence, leaving just the text.
-
 #### Image Attachments
 I will upload any referenced images from `./assets` as attachments and convert the `<img>` element to `<ac:image>`.
+
+#### Info Block
+If you set `includeNote` in your config to `true`, this plugin will prepend an info block to the top of your page indicating that this note was exported from Dendron and that changes made to the page directly may be overwritten. On a personal note, I added this functionality when I had a co-worker get mad that changes he made got overwritten.
 
 ## Installation
 
@@ -65,6 +67,16 @@ At this point, you should be able to publish a note via the Dendron CLI.
   --configPath './pods/dendron.confluence/config.yml' \
   --query '<YOUR_NOTE>'
 ```
+
+## Config Options
+Option | Description | Default
+--- | --- | ---
+username | The username you use to log in to Confluence (typically your email) | required
+password | An [API Token](https://id.atlassian.com/manage/api-tokens) you generated | required
+baseUrl | The domain root for your Confluence installation | required
+space | The reference to the space where you want to upload | required
+parentPageId | The page under which all pages are published | nil
+includeHeader | Whether or not to include an info panel at the top of the page indicating the page is exported from Dendron | false
 
 ## Debugging
 The most likely bug you'll run into once you get things working is `com.atlassian.confluence.api.service.exceptions.BadRequestException: Content body cannot be converted to new editor format`. This means that there's something in the HTML that Confluence doesn't like. This means that there's probably an edge case that I haven't caught (apologies).

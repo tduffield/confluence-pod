@@ -29,6 +29,7 @@ export type ConfluenceConfig = PublishPodConfig & {
   baseUrl: string;
   space: string;
   parentPageId: string;
+  includeNote: boolean;
 };
 
 const CONFLUNCE_IMG_REGEX = /\!(.+?)\!/g
@@ -61,6 +62,11 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
           type: "string",
           description: "the ID for the page all notes should be nested under",
         },
+        includeNote: {
+          type: "boolean",
+          description: "whether or not to indicate the note was published from Dendron",
+          default: false,
+        }
       },
     }) as JSONSchemaType<ConfluenceConfig>;
   }
@@ -81,9 +87,14 @@ class ConfluencePod extends PublishPod<ConfluenceConfig> {
       },
       { flavor: ProcFlavor.REGULAR }
     );
-    proc.use(confluence);
+    proc.use(confluence, { includeNote: config.includeNote });
     const content = await proc.process(NoteUtils.serialize(note));
     const contentString = content.toString();
+
+    if (process.env.CPOD_DEBUG_CONTENT) {
+      console.log(contentString);
+      return;
+    }
 
     const confluenceApi: ConfluenceAPI = new ConfluenceAPI({ podConfig: config });
 
