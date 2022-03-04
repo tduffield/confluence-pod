@@ -5,11 +5,20 @@ A [V1 Dendron Pod](https://wiki.dendron.so/notes/66727a39-d0a7-449b-a10d-f6c4381
 
 ```bash
 cd {workspace}
-npm init -y
-npm install --global dendron-cli
-npm install --save @tomduffield/confluence-pod
+{workspace} $ npm init -y
+{workspace} $ npm install --global dendron-cli
+{workspace} $ npm install --save @tomduffield/confluence-pod
 ```
 
+### Install From Source
+```bash
+~/code $ git clone https://github.com/tduffield/confluence-pod.git
+~/code/confluence-pod $ yarn install
+~/code/confluence-pod $ npm link
+{workspace} $ npm init -y
+{workspace} $ npm install --global dendron-cli
+{workspace} $ npm link confluence-pod
+```
 ## Usage
 
 ```bash
