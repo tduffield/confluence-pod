@@ -32,48 +32,8 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
         }
       } else if (node.type == "root" && opts?.includeNote) {
         let rnode = node as Root;
-        rnode.children.unshift({
-          type: "element",
-          tagName: "ac:structured-macro",
-          properties: {
-            "ac:name": "info",
-          },
-          children: [
-            {
-              type: "element",
-              tagName: "ac:rich-text-body",
-              children: [
-                {
-                  type: "element",
-                  tagName: "p",
-                  children: [
-                    {
-                      type: "text",
-                      value: "This note was exported from ",
-                    },
-                    {
-                      type: "element",
-                      tagName: "a",
-                      properties: {
-                        href: "https://www.dendron.so",
-                      },
-                      children: [
-                        {
-                          type: "text",
-                          value: "Dendron",
-                        },
-                      ],
-                    },
-                    {
-                      type: "text",
-                      value: ". Any changes made to this page may be overwritten.",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        })
+        insertInfoBlock(rnode);
+
       }
       // We _could_ try and undo remark's parsing of the fenced code block, but it looks "fine"
     });
@@ -141,9 +101,59 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
         ],
       },
     ]
-
     return enode;
   }
+
+  /**
+   * Prepend an Info Block at the top of the page indicating that this page was exported
+   * @param node
+   */
+  function insertInfoBlock(rnode: Root) {
+    rnode.children.unshift({
+      type: "element",
+      tagName: "ac:structured-macro",
+      properties: {
+        "ac:name": "info",
+      },
+      children: [
+        {
+          type: "element",
+          tagName: "ac:rich-text-body",
+          children: [
+            {
+              type: "element",
+              tagName: "p",
+              children: [
+                {
+                  type: "text",
+                  value: "This page was exported from ",
+                },
+                {
+                  type: "element",
+                  tagName: "a",
+                  properties: {
+                    href: "https://www.dendron.so",
+                  },
+                  children: [
+                    {
+                      type: "text",
+                      value: "Dendron",
+                    },
+                  ],
+                },
+                {
+                  type: "text",
+                  value: ". Changes made to this page directly may be overwritten.",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    return rnode;
+  }
+
   return transformer;
 }
 
