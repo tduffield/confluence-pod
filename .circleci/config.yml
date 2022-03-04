@@ -24,6 +24,16 @@ jobs:
           root: ~/repo
           paths:
             - .
+  build:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run: yarn run build
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - .
 
 
 # Invoke jobs via workflows
@@ -32,3 +42,6 @@ workflows:
   main:
     jobs:
       - test
+      - build:
+          requires:
+            - test
