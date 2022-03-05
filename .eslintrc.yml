@@ -3,6 +3,7 @@ env:
   browser: true
   es6: true
   es2021: true
+  jest: true
 extends:
   - airbnb-base
 parser: "@typescript-eslint/parser"
@@ -11,6 +12,7 @@ parserOptions:
   sourceType: module
 plugins:
   - "@typescript-eslint"
+  - jest
 rules:
   "@typescript-eslint/no-explicit-any": off
   lines-between-class-members: off
