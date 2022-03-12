@@ -84,7 +84,7 @@ Image Attributes | 🚧
 
 ## Limitations
 * Exported notes do not include the Children or Backlink sections. _This is something we'd like to support in the future however._
-* All notes are published as children pages to your `parentPageId`. We do re-create your hierarchy.
+* All notes are currently published as children pages to your `parentPageId`. We do not re-create your hierarchy (yet).
 * This pod has only been tested on the Confluence Cloud.
 
 ## Features
