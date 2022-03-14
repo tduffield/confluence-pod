@@ -9,6 +9,8 @@ type PluginOpts = {
   includeNote: boolean;
 };
 
+// TODO: Strip out the children and backlink sections we do don't have to use insideNoteRef
+
 /**
  * Convert <img> to <ac:image>
  * @param node

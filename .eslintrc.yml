@@ -24,3 +24,4 @@ rules:
   import/no-extraneous-dependencies: off
   no-param-reassign: off
   no-unused-vars: off
+  max-len: off

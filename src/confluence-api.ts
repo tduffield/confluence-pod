@@ -3,9 +3,9 @@ import {
   DendronError,
 } from "@dendronhq/common-all";
 
-import FormData from "form-data";
 import * as fs from "fs";
-import { ConfluenceConfig } from ".";
+import FormData from "form-data";
+import { ConfluenceContent, ConfluenceContentArray } from "./confluence-api-types";
 
 export type GetPageOpts = {
   pageId: string,
@@ -28,42 +28,46 @@ export type UploadAttachmentOpts = GetPageOpts & {
 
 export type DeleteAttachmentOpts = GetPageOpts;
 
-export class ConfluenceAPI {
-  private baseUrl: string;
-  private authHeaders: any;
-  private defaultPageData: any;
+export type ConfluenceAPIConfig = {
+  username: string;
+  password: string;
+  baseUrl: string;
+  space: string;
+  parentPageId?: string;
+}
 
-  constructor({
-    podConfig,
-  }: {
-    podConfig: ConfluenceConfig,
-  }) {
-    this.baseUrl = podConfig.baseUrl;
+export class ConfluenceAPI {
+  public baseUrl: string;
+  public authHeaders: any;
+  public defaultPageData: any;
+
+  constructor(config: ConfluenceAPIConfig) {
+    this.baseUrl = config.baseUrl;
     this.authHeaders = {
       auth: {
-        username: podConfig.username,
-        password: podConfig.password,
+        username: config.username,
+        password: config.password,
       },
     };
 
     this.defaultPageData = {
       type: "page",
       space: {
-        key: podConfig.space,
+        key: config.space,
       },
     };
 
-    if (podConfig.parentPageId) {
+    if (config.parentPageId) {
       this.defaultPageData.ancestors = [
         {
-          id: podConfig.parentPageId,
+          id: config.parentPageId,
           type: "page",
         },
       ];
     }
   }
 
-  async getPage(opts: GetPageOpts): Promise<any> {
+  async getPage(opts: GetPageOpts): Promise<ConfluenceContent> {
     return this.apiRequest("get", `/wiki/rest/api/content/${opts.pageId}`);
   }
 
@@ -82,7 +86,7 @@ export class ConfluenceAPI {
     return this.apiRequest("post", "/wiki/rest/api/content", formData);
   }
 
-  async updatePage(opts: UpdatePageOpts): Promise<any> {
+  async updatePage(opts: UpdatePageOpts): Promise<ConfluenceContent> {
     const { pageId, title, version, content } = opts;
     const formData = {
       id: pageId,
@@ -103,7 +107,7 @@ export class ConfluenceAPI {
     return this.apiRequest("put", `/wiki/rest/api/content/${pageId}`, formData);
   }
 
-  async uploadAttachment(opts: UploadAttachmentOpts) {
+  async uploadAttachment(opts: UploadAttachmentOpts): Promise<ConfluenceContentArray> {
     const { pageId, fsPath, title } = opts;
     const uploadFormData = new FormData();
     uploadFormData.append("file", fs.createReadStream(fsPath));
