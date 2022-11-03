@@ -6,7 +6,7 @@ A [V1 Dendron Pod](https://wiki.dendron.so/notes/66727a39-d0a7-449b-a10d-f6c4381
 ```bash
 cd {workspace}
 {workspace} $ npm init -y
-{workspace} $ npm install --global dendron-cli
+{workspace} $ npm install --global @dendronhq/dendron-cli
 {workspace} $ npm install --save @tomduffield/confluence-pod
 ```
 
